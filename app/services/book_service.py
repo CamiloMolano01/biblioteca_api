@@ -12,7 +12,12 @@ def remove_accents(input_str: str) -> str:
 
 
 def get_book(db: Session, id: int):
-    book = db.query(Book).filter(Book.id == id).first()
+    book = (
+        db.query(Book)
+        .join(Author, Book.author_id == Author.id)
+        .filter(Book.id == id)
+        .first()
+    )
     if book is None:
         raise HTTPException(status_code=404, detail="Book not found")
     return book
