@@ -1,5 +1,6 @@
 import unicodedata
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from app.models.models import Author, Book
 from app.schemas.book import Book as BookSchema
 from sqlalchemy.orm import Session
@@ -47,10 +48,23 @@ def get_books(
 
 def create_book(db: Session, book: BookSchema):
     db_book = Book(**book.model_dump())
-    db.add(db_book)
-    db.commit()
-    db.refresh(db_book)
-    return db_book
+    try:
+        db.add(db_book)
+        db.commit()
+        db.refresh(db_book)
+        return db_book
+    except IntegrityError as e:
+        db.rollback()  # Revierte la transacción en caso de error
+        if "duplicate key value violates unique constraint" in str(e.orig):
+            raise HTTPException(
+                status_code=409,
+                detail="A book with this ISBN already exists.",
+            )
+        elif "violates foreign key constraint" in str(e.orig):
+            raise HTTPException(
+                status_code=400,
+                detail="The specified author ID does not exist.",
+            )
 
 
 def update_book(db: Session, id: int, book: BookSchema):

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.schemas.book import Book, BookResponse
+from app.schemas.book import Book, BookResponse, BookPostResponse
 from app.services.book_service import (
     get_books,
     create_book,
@@ -24,7 +24,29 @@ def get(
     return get_books(db, title, author_name, author_id, publication_year)
 
 
-@router.post("/", response_model=Book, status_code=201)
+@router.post(
+    "/",
+    response_model=BookPostResponse,
+    status_code=201,
+    responses={
+        409: {
+            "description": "Conflict - A book with this ISBN already exists.",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "A book with this ISBN already exists."}
+                }
+            },
+        },
+        400: {
+            "description": "Conflict - The specified author ID does not exist.",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "The specified author ID does not exist."}
+                }
+            },
+        },
+    },
+)
 def add(book: Book, db: Session = Depends(get_db)):
     return create_book(db, book)
 
