@@ -19,7 +19,15 @@ This is a FastAPI-based library management API, designed for managing books and 
 - **Automated tests** for API and database operations with Pytest.
 - **Dockerized** application and PostgreSQL database for easy deployment.
 
+## Requirements
+
+- **Python** This project requires *Python 3.10* or higher.
+- **Pytest** This project requires *pytest 8.3.3* or higher
+- **SQLAlchemy** This project requires *SQLAlchemy 2.0.36* or higher
+
 ## Installation
+
+
 
 1. Clone the repository:
 
