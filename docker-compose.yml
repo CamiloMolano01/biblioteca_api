@@ -1,0 +1,56 @@
+version: '2.2'
+services:
+  db:
+    container_name: db
+    restart: always
+    image: postgres:16
+    environment:
+      POSTGRES_USER: 'admin'
+      POSTGRES_PASSWORD: 'admin123'
+      POSTGRES_DB: 'library'
+    ports:
+      - '8999:5432'
+    volumes:
+      - ./container_files/postgres:/var/lib/postgresql
+    networks:
+      - library_network
+  
+  db_test:
+    container_name: db_test
+    restart: always
+    image: postgres:16
+    environment:
+      POSTGRES_USER: 'admin'
+      POSTGRES_PASSWORD: 'admin11'
+      POSTGRES_DB: 'library_test'
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '8998:5432'
+    networks:
+      - library_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    tty: true
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    volumes:
+      - ./backend:/backend/:cached
+      - ./.docker/.ipython:/root/.ipython:cached
+    environment:
+      PYTHONPATH: .
+    depends_on:
+      - "db"
+    ports:
+      - '8000:8000'
+    networks:
+      - library_network
+
+volumes:
+  pgadmin-data:
+
+networks:
+  library_network:
+    driver: bridge
